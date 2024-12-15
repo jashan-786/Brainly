@@ -16,7 +16,7 @@ app.use(express.json())
 app.post("/api/v1/signup", async ( req, res) => {
 const username= req.body.username
 const password= req.body.password
-
+console.log( " added")
     try{
     await UserModel.create({
         username : username,
