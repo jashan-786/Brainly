@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 const Schema= mongoose.Schema;
 const objectId= Schema.ObjectId;
 const User= new Schema({
-    username: { type: String, unique: true},
+    username: { type: String,   unique: true},
     password: String
 
 })
@@ -22,22 +22,28 @@ const Content= new Schema(
     {
     title: {type : String, required: true},
     link: String,
-    userId:  { type : Schema.Types.ObjectId , ref: "UserModel", required: true},
-    tags: [ { type : Schema.Types.ObjectId, ref: "TagsModel", required: true } ]
+    userId:  { type : mongoose.Types.ObjectId , ref: "User", required: true},
+    tags: [ { type : mongoose.Types.ObjectId, ref: "Tags", required: true } ]
 
 })
 
 const Tags= new Schema({
 hash: String,
 tag: String,
-userId : { type: Schema.Types.ObjectId , ref: "UserModel", required: true}
+userId : { type: mongoose.Types.ObjectId , ref: "User", required: true}
 })
 
+
+const Links= new Schema({
+hash: String,
+userId: {type: mongoose.Types.ObjectId , ref : "User" , required: true , unique : true}
+
+})
 
 const UserModel= mongoose.model('Users', User)
 const ContentModel= mongoose.model('Content', Content)
 const TagsModel= mongoose.model('Tags',Tags);
-
+const LinksModel= mongoose.model('Links',Links)
 // connection to mongodb 
 
 export const connectMongoDb= () => {
@@ -59,4 +65,4 @@ mongoose.connect(
 
 }
 
-export {UserModel , ContentModel, TagsModel}
+export {UserModel , ContentModel, TagsModel, LinksModel}

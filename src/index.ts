@@ -2,16 +2,18 @@ import express from  "express"
 
 import jwt from "jsonwebtoken"
 const app= express();
-import  {UserModel , TagsModel , ContentModel} from  "./db"
+import  {UserModel , TagsModel , ContentModel, LinksModel} from  "./db"
 import { connectMongoDb } from "./db";
 import { UserType } from "./interfaces";
 import { userMiddleWare } from "./middleware";
+import { random } from "./utils";
+import cors from "cors"
 require('dotenv').config()
 
 connectMongoDb();
 
 app.use(express.json())
-
+app.use(cors())
 
 app.post("/api/v1/signup", async ( req, res) => {
 const username= req.body.username
@@ -238,14 +240,92 @@ if( id){
 })
 
 
-app.post("/api/v1/brain/share", (req, res ) => {
+app.post("/api/v1/brain/share", userMiddleWare,async (req, res ) => {
+const share = req.body.share
 
+if(share)
+{
+
+    const hash= random(10)
+
+    const exists=  await LinksModel.findOne({
+        userId: req.user?.id
+     })
+
+     if(exists)
+       { res.json({ message: "/share/" + exists.hash})
+    return;
+    }
     
+
+   await   LinksModel.create({
+            userId: req.user?.id,
+            hash
+
+     })
+
+
+     res.json({ message: "/share/" + hash})
+}else{
+
+   await  LinksModel.deleteOne({
+userId: req.user?.id
+
+    })
+
+    res.json({ message: "Link sharable option set to " + share})
+
+}  
+
+
+
 })
 
-app.get("/api/v1/brain/share", (req, res ) => {
+
+//brainly/share/asdddwef(hash)
+app.get("/api/v1/brain/:shareLink", async (req, res ) => {
+
+    const hash= req.params.shareLink
+
+   const link= await LinksModel.findOne({hash})
+
+   console.log(link)
+   if(!link){
+
+ 
+    res.status(411).json({
+        message:"Sorry incorrect input"
+   })        
+
+
+   return;
+    }
+
+    //1st oprion to get username
+    const content= await  ContentModel.find({ userId: link.userId}).populate("userId" , "username")
+
+//2nd oprton to get useranmae
+    const user= await UserModel.findOne( { _id : link.userId})
+
+
+    if(!user)
+    {
+        res.status(411).json({
+
+            message: "user not found"
+        })
+
+        return;
+    }
 
     
+
+    res.status(200).json({
+            userName: user.username,
+            content :content
+
+    })
+
 })
 
 

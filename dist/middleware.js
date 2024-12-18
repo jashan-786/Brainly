@@ -9,15 +9,17 @@ const userMiddleWare = (req, res, next) => {
     console.log(" hit middleware");
     try {
         // check presense of authoriztion header
-        if (req.headers["authorization"]) {
-            const athz = req.headers["authorization"];
+        if (req.headers["Authorization"]) {
+            const athz = req.headers["Authorization"];
             if (athz != null) {
                 const token = athz.substring(7);
                 const checkToken = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
                 console.log(checkToken);
                 if (checkToken) {
                     console.log(checkToken);
-                    //@ts-ignore
+                    if (typeof checkToken === "string") {
+                        throw new Error("Token is a string not an object");
+                    }
                     req.user = { id: checkToken.id };
                     next();
                 }
